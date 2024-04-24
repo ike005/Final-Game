@@ -28,50 +28,30 @@ class Player(simpleGE.Sprite):
         
         
     def process(self):
+           
         self.copyImage(self.images["cruise"])
         if self.isKeyPressed(pygame.K_LEFT):
-            #self.imageAngle += 5
-            #self.copyImage(self.images["right"])
-            self.x -= self.moveSpeed
-            self.scene.currentBullet += 1
-            if self.scene.currentBullet >= self.scene.NUM_BULLETS:
-               self.scene.currentBullet = 0
-
-        if self.isKeyPressed(pygame.K_SLASH):
-            #self.addForce(.2, self.imageAngle)
-            self.imageAngle -= 5
-            self.copyImage(self.images["left"])
-            self.x += self.moveSpeed
-            self.scene.currentBullet += 1
-            if self.scene.currentBullet >= self.scene.NUM_BULLETS:
-               self.scene.currentBullet = 0
-               
+            self.imageAngle += 5
+            if self.left > 0:
+                self.x -= 5
+          
         if self.isKeyPressed(pygame.K_RIGHT):
             #self.addForce(.2, self.imageAngle)
-            #self.imageAngle -= 5
-            self.copyImage(self.images["left"])
-            self.x += self.moveSpeed
-            self.scene.currentBullet += 1
-            if self.scene.currentBullet >= self.scene.NUM_BULLETS:
-               self.scene.currentBullet = 0
+            self.imageAngle -= 5
+            if self.right < self.screenWidth:
+                self.copyImage(self.images["left"])
+                self.x += 5
                
         if self.isKeyPressed(pygame.K_UP):
-            #self.addForce(.2, self.imageAngle)
-            #self.copyImage(self.images["thrust"])
-            self.y -= self.moveSpeed
-            self.scene.currentBullet += 1
-            if self.scene.currentBullet >= self.scene.NUM_BULLETS:
-               self.scene.currentBullet = 0
-            
+            if self.y > 0:
+                self.y -= self.moveSpeed
+           
         if self.isKeyPressed(pygame.K_DOWN):
             #self.addForce(.2, self.imageAngle)
-            self.copyImage(self.images["thrust"])
-            self.y += self.moveSpeed
-            self.scene.currentBullet += 1
-            if self.scene.currentBullet >= self.scene.NUM_BULLETS:
-               self.scene.currentBullet = 0
+            if self.y < self.screenHeight:
+                self.copyImage(self.images["thrust"])
+                self.y += self.moveSpeed
     
-        
 class Astroid(simpleGE.Sprite):
     def __init__(self, scene):
         super().__init__(scene)
@@ -95,7 +75,7 @@ class SMastroid(simpleGE.Sprite):
     def __init__(self, scene):
         super().__init__(scene)
         self.setImage("meteorSmall.png")
-        #self.setSize(80,50)
+        self.setSize(80,50)
         self.position = (500,240)
         self.minSpeed = 2
         self.maxSpeed = 6
@@ -114,16 +94,16 @@ class EnemyA(simpleGE.Sprite):
     def __init__(self, scene):
         super().__init__(scene)
         self.setImage("enemyShip.png")
-        self.setSize(70,50)
+        #self.setSize(70,50)
         self.position = (-20,240)
-        self.imageAngle = -90
+        self.imageAngle = 270
         self.minSpeed = 3           
         self.maxSpeed = 6
-        #self.dx = -self.dx
         self.dx -= random.randint(self.minSpeed, self.maxSpeed)
-        
-    #def process(self):
-        
+    def process(self):
+        randNUM = random.randint(1, 30)
+        if randNUM <= 5:
+            self.scene.bullet2.fire()
         
     def reset(self):
         self.x = 500
@@ -133,17 +113,7 @@ class EnemyA(simpleGE.Sprite):
     def checkBounds(self):  
         if -self.right > self.screenWidth:
             self.reset()
-    #def process():
-        #randNUM = random.randint(1,100)
-        
-       # keepGoing = True
-        #while keepGoing:
-    
-        #if randNUM <= 25:
-        #self.bullet.fire()
-       
-
-        
+   
 class EnemyB(simpleGE.Sprite):
     def __init__(self, scene):
         super().__init__(scene)
@@ -153,7 +123,7 @@ class EnemyB(simpleGE.Sprite):
         self.minSpeed = 1         
         self.maxSpeed = 2
         self.dx = random.randint(self.minSpeed, self.maxSpeed)
-        self.imageAngle = -270
+        self.imageAngle = -180
         self.dx = -self.dx
         self.setBoundAction(self.BOUNCE)
  
@@ -169,11 +139,22 @@ class Bullet(simpleGE.Sprite):
         self.setBoundAction(self.HIDE)
         self.hide()
 
+    def process(self):
+        if self.collidesWith(self.scene.enemyA):
+           self.scene.enemyA.reset()
+           #self.score -= 2
+           #self.lblScore.text = f"Score: {self.score}"
+        if self.collidesWith(self.scene.bigAstroid):
+           self.scene.bigAstroid.reset()
+        if self.collidesWith(self.scene.smallAstroid):
+           self.scene.smallAstroid.reset()
+
     def fire(self):
         if not self.visible:
             self.show()
             self.position = self.parent.position
             self.moveAngle = self.parent.imageAngle
+            self.imageAngle = self.parent.imageAngle
             self.speed = 50
      
     def reset(self):
@@ -196,22 +177,88 @@ class Bullet1(simpleGE.Sprite):
             self.show()
             self.position = self.parent.position
             self.moveAngle = self.parent.imageAngle
+            self.moveAngle = self.parent.imageAngle-90
+            self.imageAngle = self.parent.imageAngle
             self.speed = 20
             
     def reset(self):
         self.hide()
+        
+class LblTime(simpleGE.Label):
+    def __init__(self):
+        super().__init__()
+        self.text = "Time: 20"
+        self.center = (120,100)
+        
+class LblDurability(simpleGE.Label):
+    def __init__(self):
+        super().__init__()
+        self.text = "HP: 0"
+        self.center = (500,100)
+     
+
+class Instructions(simpleGE.Scene):
+    def __init__(self, score):
+        super().__init__()
+        
+        self.prevScore = score
+        
+        self.setImage("Background-3.png")
+        self.response = "Quit"
+                                                 
+        self.directions = simpleGE.MultiLabel()
+        self.directions.textLines = [ 
+        "Space Wars", "Your a space warrior", "Try and survive the wave of enemy ships"]
+       
+        
+        self.directions.center = (320, 200)
+        self.directions.size = (400, 250)
+        
+        self.btnPlay = simpleGE.Button()
+        self.btnPlay.text = "Play"
+        self.btnPlay.center = (100,400)
+        
+        self.btnQuit = simpleGE.Button()
+        self.btnQuit.text = "Quit"
+        self.btnQuit.center = (540,400)
+        
+        #self.lblScore = simpleGE.Label()
+        #self.lblScore.text = "Last score: 0"
+        #self.lblScore.center = (320,400)
+
+        #self.lblScore.text = f"Last score: {self.prevScore}"
+        
+        
+        self.sprites = [self.directions,
+                        self.btnPlay,
+                        self.btnQuit]
+        
+    def process(self):
+        if self.btnPlay.clicked:
+            self.response = "Play"
+            self.stop()
+            
+            
+        if self.btnQuit.clicked:
+            self.response = "Quit"
+            self.stop()
+        
+        
             
 class Game(simpleGE.Scene):
     def __init__(self):
         super().__init__()
         self.setImage("starBackground.png")
+        self.sndBullet = simpleGE.Sound("alienshoot1.wav")
+        self.sndAstroid = simpleGE.Sound("bombSound.wav")
         self.player = Player(self)
-        self.bigastroid = Astroid(self)
-        self.smallastroid = SMastroid(self)
-        self.enemya = EnemyA(self)
+        self.bigAstroid = Astroid(self)
+        self.smallAstroid = SMastroid(self)
+        self.enemyA = EnemyA(self)
         self.enemyb = EnemyB(self)
-        self.bullet = Bullet(self, self.player)
+        self.bullets = Bullet(self, self.player)
         self.bullet1 = Bullet1(self, self.enemyb)
+        self.bullet2 = Bullet1(self, self.enemyA)
         self.NUM_BULLETS = 10
         self.currentBullet = 0
         self.bullet = []
@@ -219,14 +266,27 @@ class Game(simpleGE.Scene):
         self.bigastroid = []
         self.smallastroid = []
         
+        self.hp = 100
+        self.lblHp = LblDurability()
+        
+        #self.score = 0
+        # self.lblScore = LblScore()
+        
+        self.timer = simpleGE.Timer()
+        self.timer.totalTime = 30
+        self.lblTime = LblTime()
+        
+        
+        
         for enemy in range(4):
-            self.enemya.append(EnemyA(self))
+            self.enemya.append(self.enemyA)
+            self.enemya.append(self.bullet2)
             
         for astroid in range(2):
-            self.bigastroid.append(Astroid(self))
+            self.bigastroid.append(self.bigAstroid)
             
         for astroid in range(4):
-            self.smallastroid.append(SMastroid(self))
+            self.smallastroid.append(self.smallAstroid)
         
         
         for i in range(self.NUM_BULLETS):
@@ -235,7 +295,7 @@ class Game(simpleGE.Scene):
             
         self.sprites = [
             self.player, self.enemya, self.enemyb, self.bullet, self.bullet1,
-            self.bigastroid, self.smallastroid]
+            self.bigastroid, self.smallastroid, self.lblHp, self.lblTime]
         
 
         if self.player.x <= 40:
@@ -249,14 +309,35 @@ class Game(simpleGE.Scene):
         
     def process(self):
         self.bullet1.fire()
-        if self.bullet1.collidesWith(self.player): 
-           self.bullet1.reset() 
-       
-       #for bullets in self.bullet:    
-           #for enemy in self.enemya:
-               #if bullets.collidesWith(enemy):
-                   #bullets.reset()
+        if self.hp <= 0:
+            if self.timer == 0:
+                self.stop()
+        if self.bullet1.collidesWith(self.player):
+           self.sndBullet.play()
+           self.bullet1.reset()
+           self.hp -= 5 
+           self.lblHp.text = f"HP: {self.hp:.2f}"
+           #self.score -= 5
+        elif self.bullet2.collidesWith(self.player):
+           self.sndBullet.play()
+           self.bullet2.reset()
+           self.hp -= 5
+        elif self.player.collidesWith(self.bigAstroid):
+           self.sndAstroid.play()
+           self.bigAstroid.reset()
+           self.hp -= 2  
+           self.lblHp.text = f"Score: {self.hp:.2f}"
+          
+        elif self.player.collidesWith(self.smallAstroid):
+           self.sndAstroid.play()
+           self.smallAstroid.reset()
+           self.hp -= 2  
+           self.lblHp.text = f"Score: {self.hp:.2f}"
+           #self.score -= 2
            
+        self.lblTime.text = f"Time left: {self.timer.getTimeLeft():.2f}"
+        
+        
     def processEvent(self, event):      
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
@@ -271,8 +352,22 @@ class Game(simpleGE.Scene):
             
         
 def main():
-   game = Game()
-   game.start()
+    keepGoing = True
+    lastScore = 0
+    
+    while keepGoing:
+        instructions = Instructions(lastScore)
+        instructions.start()
+        
+        if instructions.response == "Play":
+            game = Game()
+            game.start()
+            lastScore = game.score
+            
+        else:
+            keepGoing = False
+   #game = Game()
+   #game.start()
            
 if __name__ == "__main__":
     main()
