@@ -4,6 +4,12 @@ Created on Thu Apr 11 08:19:09 2024
 
 @author: chibuike
 """
+"""
+ Asteroid sound - https://opengameart.org/content/bombexplosion8bit
+Bullet sound - https://opengameart.org/content/space-shoot-sounds
+Intro background - https://opengameart.org/content/space-backgrounds-3
+The space ships, asteroids, game background and bullet - https://opengameart.org/content/space-shooter-art
+"""
 
 import pygame, simpleGE, random
 
